@@ -24,9 +24,10 @@ if (file_exists($filename)) {
       }
     } else {
       $image = file_get_contents($tronScanIconData[0]->icon_url);
-      file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+      $file = 'icons/tron/trc20/' . $selectedToken . '.png';
+      file_put_contents($file, $image, LOCK_EX);
       $file = 'icons/tron/trc20/' . strtolower($selectedToken) . '.png';
-      file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+      file_put_contents($file, $image, LOCK_EX);
     }
   }
 }
