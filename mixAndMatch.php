@@ -1,6 +1,39 @@
 <?php
 header ('Content-Type: image/png');
 
+// Helper: fetch icon locally by re-using the existing icon_*.php files via output buffering
+function fetchLocalIcon(string $chain, string $tokenAddress): string|false {
+  $_GET['token']       = $tokenAddress;
+  $_GET['autoResolve'] = 'false';
+  ob_start();
+  switch ($chain) {
+    case 'TRX':  include __DIR__ . '/icon_trc20.php'; break;
+    case 'ETH':  include __DIR__ . '/icon_eth.php';   break;
+    case 'ICX':  include __DIR__ . '/icon_icx.php';   break;
+    case 'BSC':  include __DIR__ . '/icon_bsc.php';   break;
+    case 'ONE':  include __DIR__ . '/icon_one.php';   break;
+    case 'ONT':  include __DIR__ . '/icon_ont.php';   break;
+    case 'IOTX': include __DIR__ . '/icon_iotx.php';  break;
+    case 'MATIC':include __DIR__ . '/icon_matic.php'; break;
+    case 'AVAX': include __DIR__ . '/icon_avax.php';  break;
+    case 'SYS':  include __DIR__ . '/icon_sys.php';   break;
+    default: ob_end_clean(); return false;
+  }
+  $data = ob_get_clean();
+  // A 404 response from the include means no icon found
+  return (http_response_code() === 404 || empty($data)) ? false : $data;
+}
+
+// CoinGecko chain-id map for contract lookups by token name
+$coingeckoChainMap = [
+  'ethereum'        => 'ethereum',
+  'binancesmartchain'=> 'binance-smart-chain',
+  'iotex'           => 'iotex',
+  'polygon'         => 'polygon-pos',
+  'avalanche'       => 'avalanche',
+  'syscoin'         => 'syscoin',
+];
+
 // Get unifi Tokens pairs
 $json_unifiTokens = file_get_contents('data/tokens.json');
 $unifiTokens = json_decode($json_unifiTokens);
@@ -19,39 +52,12 @@ if ($smartContract):
     }
   }
 
-  if ($BlockchainShort == 'TRX') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_trc20?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'ETH') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_eth?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'ICX') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_icx?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'BSC') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_bsc?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'ONE') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_one?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'ONT') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_ont?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'IOTX') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_iotx?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'MATIC') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_matic?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'AVAX') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_avax?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'SYS') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_sys?token=' . $tokenAddress . '');
+  if (!empty($BlockchainShort)) {
+    $image = fetchLocalIcon($BlockchainShort, $tokenAddress);
   }
 endif;
 
-// Search bij blockchain and token name
+// Search by blockchain and token name
 if ($blockchain):
   foreach ($unifiTokens as $unifiToken) {
     if ($blockchain == $unifiToken->Blockchain) {
@@ -62,127 +68,68 @@ if ($blockchain):
     }
   }
 
-  if ($BlockchainShort == 'TRX') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_trc20?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'ETH') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_eth?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'ICX') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_icx?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'BSC') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_bsc?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'ONE') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_one?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'ONT') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_ont?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'IOTX') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_iotx?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'MATIC') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_matic?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'AVAX') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_avax?token=' . $tokenAddress . '');
-  }
-  if ($BlockchainShort == 'SYS') {
-    $image = file_get_contents('https://icon-service.unifi.report/icon_sys?token=' . $tokenAddress . '');
+  if (!empty($BlockchainShort) && !empty($tokenAddress)) {
+    $image = fetchLocalIcon($BlockchainShort, $tokenAddress);
   }
 
-// Search for correct image
-  if ($image) {
-    echo $image;
-  } else {
-    if (strtolower($blockchain) == 'ethereum') {
-      $tokenDataIcons = json_decode(file_get_contents('https://token-data.unifi.report/api/getInfo?chain=ETH&tokenName=' . $tokenName . ''));
-      $tokenDataIconData = $tokenDataIcons->logoURI;
-      $image = file_get_contents($tokenDataIconData);
-    }
-    if (strtolower($blockchain) == 'icon') {
+  // Search for correct image
+  if (empty($image)) {
+    $blockchainLower = strtolower($blockchain);
+
+    if ($blockchainLower === 'icon') {
       $image = file_get_contents('icons/icon/icx.png');
       echo $image;
-    }
-    if (strtolower($blockchain) == 'binancesmartchain') {
-      $tokenDataIcons = json_decode(file_get_contents('https://token-data.unifi.report/api/getInfo?chain=BSC&tokenName=' . $tokenName . ''));
-      $tokenDataIconData = $tokenDataIcons->logoURI;
-      $image = file_get_contents($tokenDataIconData);
-    }
-    if (strtolower($blockchain) == 'harmony') {
+    } elseif ($blockchainLower === 'harmony') {
       $image = file_get_contents('icons/harmony/one.png');
       echo $image;
-    }
-    if (strtolower($blockchain) == 'ontology') {
+    } elseif ($blockchainLower === 'ontology') {
       $image = file_get_contents('icons/ontology/ONT_blue.png');
       echo $image;
-    }
-    if (strtolower($blockchain) == 'iotex') {
-      $tokenDataIcons = json_decode(file_get_contents('https://token-data.unifi.report/api/getInfo?chain=IOTX&tokenName=' . $tokenName . ''));
-      $tokenDataIconData = $tokenDataIcons->logoURI;
-      $image = file_get_contents($tokenDataIconData);
-    }
-    if (strtolower($blockchain) == 'polygon') {
-      $tokenDataIcons = json_decode(file_get_contents('https://token-data.unifi.report/api/getInfo?chain=MATIC&tokenName=' . $tokenName . ''));
-      $tokenDataIconData = $tokenDataIcons->logoURI;
-      $image = file_get_contents($tokenDataIconData);
-    }
-    if (strtolower($blockchain) == 'avalanche') {
-      $tokenDataIcons = json_decode(file_get_contents('https://token-data.unifi.report/api/getInfo?chain=AVAX&tokenName=' . $tokenName . ''));
-      $tokenDataIconData = $tokenDataIcons->logoURI;
-      $image = file_get_contents($tokenDataIconData);
-    }
-    if (strtolower($blockchain) == 'syscoin') {
-      $tokenDataIcons = json_decode(file_get_contents('https://token-data.unifi.report/api/getInfo?chain=SYS&tokenName=' . $tokenName . ''));
-      $tokenDataIconData = $tokenDataIcons->logoURI;
-      $image = file_get_contents($tokenDataIconData);
+    } elseif (isset($coingeckoChainMap[$blockchainLower]) && !empty($tokenAddress)) {
+      $cgChain = $coingeckoChainMap[$blockchainLower];
+      $json_coingecko = file_get_contents('https://api.coingecko.com/api/v3/coins/' . $cgChain . '/contract/' . $tokenAddress);
+      $coingeckoData = json_decode($json_coingecko);
+      $coingeckoImageUrl = $coingeckoData->image->large ?? null;
+      if ($coingeckoImageUrl) {
+        $image = file_get_contents($coingeckoImageUrl);
+      }
     }
   }
 
-
 endif;
+
 if ($image) {
   echo $image;
 } else {
-  if (strtolower($blockchain) == 'tron') {
+  $blockchainLower = strtolower($blockchain);
+  if ($blockchainLower === 'tron') {
     $image = file_get_contents('icons/tron/trc10/trx.png');
     echo $image;
-  }
-  if (strtolower($blockchain) == 'ethereum') {
+  } elseif ($blockchainLower === 'ethereum') {
     $image = file_get_contents('icons/ethereum/eth.png');
     echo $image;
-  }
-  if (strtolower($blockchain) == 'icon') {
+  } elseif ($blockchainLower === 'icon') {
     $image = file_get_contents('icons/icon/icx.png');
     echo $image;
-  }
-  if (strtolower($blockchain) == 'binancesmartchain') {
+  } elseif ($blockchainLower === 'binancesmartchain') {
     $image = file_get_contents('icons/binanceSmartChain/bnb.png');
     echo $image;
-  }
-  if (strtolower($blockchain) == 'harmony') {
+  } elseif ($blockchainLower === 'harmony') {
     $image = file_get_contents('icons/harmony/one.png');
     echo $image;
-  }
-  if (strtolower($blockchain) == 'ontology') {
+  } elseif ($blockchainLower === 'ontology') {
     $image = file_get_contents('icons/ontology/ONT_blue.png');
     echo $image;
-  }
-  if (strtolower($blockchain) == 'iotex') {
+  } elseif ($blockchainLower === 'iotex') {
     $image = file_get_contents('icons/iotex/iotex.png');
     echo $image;
-  }
-  if (strtolower($blockchain) == 'polygon') {
+  } elseif ($blockchainLower === 'polygon') {
     $image = file_get_contents('icons/polygon/matic.png');
     echo $image;
-  }
-  if (strtolower($blockchain) == 'avalanche') {
+  } elseif ($blockchainLower === 'avalanche') {
     $image = file_get_contents('icons/avalanche/avalanche.png');
     echo $image;
-  }
-  if (strtolower($blockchain) == 'syscoin') {
+  } elseif ($blockchainLower === 'syscoin') {
     $image = file_get_contents('icons/syscoin/SYS.png');
     echo $image;
   }

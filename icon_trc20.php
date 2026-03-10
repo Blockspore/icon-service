@@ -2,7 +2,7 @@
 header('Content-Type: image/png');
 
 $autoResolve = $_GET['autoResolve'];
-$selectedToken = $_GET['token'];
+$selectedToken = basename($_GET['token']);
 
 $filename = 'icons/tron/trc20/' . $selectedToken . '.png';
 if (file_exists($filename)) {

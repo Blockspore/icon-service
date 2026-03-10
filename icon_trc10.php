@@ -3,7 +3,7 @@ header('Content-Type: image/png');
 
 //ini_set('display_errors', '1');
 
-$selectedToken = $_GET['token'];
+$selectedToken = basename($_GET['token']);
 $autoResolve = $_GET['autoResolve'];
 
 $filename = 'icons/tron/trc10/' . $selectedToken . '.png';
@@ -21,7 +21,7 @@ if (file_exists($filename)) {
   }
   if ($image) {
     $file = 'icons/tron/trc10/' . $selectedToken . '.png';
-    file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+    file_put_contents($file, $image, LOCK_EX);
 
   } else {
     if ($autoResolve === 'false') {

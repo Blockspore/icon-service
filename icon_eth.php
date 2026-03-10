@@ -1,7 +1,7 @@
 <?php
 header ('Content-Type: image/png');
 
-$selectedToken = $_GET['token'];
+$selectedToken = basename($_GET['token']);
 $autoResolve = $_GET['autoResolve'];
 $filename = 'icons/ethereum/' . $selectedToken . '.png';
 
@@ -14,16 +14,18 @@ if (file_exists($filename)) {
     $image = file_get_contents('https://github.com/trustwallet/assets/raw/master/blockchains/ethereum/assets/' . $selectedToken . '/logo.png');
     if ($image) {
     } else {
-      $json_tokenDataIcons = file_get_contents('https://token-data.unifi.report/api/getInfo?token=' . $selectedToken . '&chain=ETH');
-      $tokenDataIcons = json_decode($json_tokenDataIcons);
-      $tokenDataIconData = $tokenDataIcons->logoURI;
-      $image = file_get_contents($tokenDataIconData);
+      $json_coingecko = file_get_contents('https://api.coingecko.com/api/v3/coins/ethereum/contract/' . $selectedToken);
+      $coingeckoData = json_decode($json_coingecko);
+      $coingeckoImageUrl = $coingeckoData->image->large ?? null;
+      if ($coingeckoImageUrl) {
+        $image = file_get_contents($coingeckoImageUrl);
+      }
     }
     if ($image) {
       $file = 'icons/ethereum/' . $selectedToken . '.png';
-      file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+      file_put_contents($file, $image, LOCK_EX);
       $file = 'icons/ethereum/' . strtolower($selectedToken) . '.png';
-      file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+      file_put_contents($file, $image, LOCK_EX);
     } else {
       if ($autoResolve === 'false') {
         http_response_code(404);

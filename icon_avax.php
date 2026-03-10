@@ -1,7 +1,7 @@
 <?php
 header ('Content-Type: image/png');
 
-$selectedToken = $_GET['token'];
+$selectedToken = basename($_GET['token']);
 $autoResolve = $_GET['autoResolve'];
 $filename = 'icons/avalanche/' . $selectedToken . '.png';
 
@@ -18,15 +18,15 @@ if (file_exists($filename)) {
     }
     if ($image) {
       $file = 'icons/avalanche/' . $selectedToken . '.png';
-      file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+      file_put_contents($file, $image, LOCK_EX);
       $file = 'icons/avalanche/' . strtolower($selectedToken) . '.png';
-      file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+      file_put_contents($file, $image, LOCK_EX);
     } else {
       if ($autoResolve === 'false') {
         http_response_code(404);
         die();
       } else {
-        $image = file_get_contents('unknown.png');
+        $image = file_get_contents('icons/unknown.png');
       }
     }
   }

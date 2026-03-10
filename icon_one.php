@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: image/png');
 
-$selectedToken = $_GET['token'];
+$selectedToken = basename($_GET['token']);
 $autoResolve = $_GET['autoResolve'];
 $filename = 'icons/harmony/' . $selectedToken . '.png';
 
@@ -21,9 +21,9 @@ if (file_exists($filename)) {
 
     if ($image) {
       $file = 'icons/harmony/' . $selectedToken . '.png';
-      file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+      file_put_contents($file, $image, LOCK_EX);
       $file = 'icons/harmony/' . strtolower($selectedToken) . '.png';
-      file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+      file_put_contents($file, $image, LOCK_EX);
     } else {
       if ($autoResolve === 'false') {
         http_response_code(404);

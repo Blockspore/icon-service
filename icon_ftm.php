@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: image/png');
 
-$selectedToken = $_GET['token'];
+$selectedToken = basename($_GET['token']);
 $autoResolve = $_GET['autoResolve'];
 $filename = 'icons/fantom/' . $selectedToken . '.png';
 
@@ -18,17 +18,10 @@ if (file_exists($filename)) {
       $image = file_get_contents('https://raw.githubusercontent.com/Layer3Org/spiritswap-tokens-list-icon/master/token-list/images/' . $selectedToken . '.png');
     }
     if ($image) {
-    } else {
-      $json_tokenDataIcons = file_get_contents('https://token-data.unifi.report/api/getInfo?token=' . $selectedToken . '&chain=FTM');
-      $tokenDataIcons = json_decode($json_tokenDataIcons);
-      $tokenDataIconData = $tokenDataIcons->logoURI;
-      $image = file_get_contents($tokenDataIconData);
-    }
-    if ($image) {
       $file = 'icons/fantom/' . $selectedToken . '.png';
-      file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+      file_put_contents($file, $image, LOCK_EX);
       $file = 'icons/fantom/' . strtolower($selectedToken) . '.png';
-      file_put_contents($file, $image, FILE_APPEND | LOCK_EX);
+      file_put_contents($file, $image, LOCK_EX);
     } else {
       if ($autoResolve === 'false') {
         http_response_code(404);
