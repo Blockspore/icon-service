@@ -6,6 +6,11 @@ header('Content-Type: image/png');
 $selectedToken = basename($_GET['token'] ?? '');
 $autoResolve = $_GET['autoResolve'] ?? 'true';
 
+if ($selectedToken === '_') {
+    echo file_get_contents('icons/tron/trc10/trx.png');
+    exit;
+}
+
 if (empty($selectedToken) || $selectedToken == '.' || $selectedToken == '..') {
     if ($autoResolve === 'false') {
         http_response_code(404);
